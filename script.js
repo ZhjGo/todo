@@ -404,12 +404,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             document.getElementById('logout-btn').addEventListener('click', () => {
-                // Client-side attempt to clear the cookie, as a fallback.
-                document.cookie = "app_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                const domain = window.location.hostname.split('.').slice(-2).join('.');
-                document.cookie = `app_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${domain};`;
-                
-                // Server-side robust logout
                 window.location.href = '/api/auth/logout';
             });
             // 登录后获取任务

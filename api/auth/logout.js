@@ -1,14 +1,21 @@
+import { serialize } from 'cookie';
+
 export default function handler(req, res) {
   const host = req.headers.host;
-  const domain = host.startsWith('localhost') ? '' : `Domain=.${host.split('.').slice(-2).join('.')};`;
+  const parentDomain = host.startsWith('localhost') ? 'localhost' : host.split('.').slice(-2).join('.');
 
-  // The most robust way to clear a cookie is to set its expiration date to the past.
-  const expiredCookie = `app_session=; HttpOnly; Secure; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+  // Use the 'cookie' library to ensure consistent serialization.
+  // Create two deletion cookies, one for the specific subdomain and one for the parent domain.
+  const options = {
+    maxAge: -1, // Expire the cookie immediately
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV !== 'development',
+  };
 
-  // Attempt to clear the cookie on both the specific subdomain and the parent domain.
   const cookies = [
-    `app_session=; HttpOnly; Secure; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Domain=${host};`,
-    `app_session=; HttpOnly; Secure; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; ${domain}`
+    serialize('app_session', '', { ...options, domain: host }),
+    serialize('app_session', '', { ...options, domain: parentDomain }),
   ];
 
   res.setHeader('Set-Cookie', cookies);
