@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pauseButton.disabled = false;
         startButton.classList.add('opacity-70');
         pauseButton.classList.remove('opacity-70');
+        statusElement.textContent = isBreak ? '开始休息' : '专注中';
         
         timerId = setInterval(() => {
             timeLeft--;
