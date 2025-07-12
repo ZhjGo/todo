@@ -1,26 +1,34 @@
 import { kv } from '@vercel/kv';
-import { parse } from 'cookie';
+import jwt from 'jsonwebtoken';
+
+// Helper function to get user ID from token
+function getUserIdFromToken(request) {
+  const authHeader = request.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+  const token = authHeader.split(' ')[1];
+  const JWT_SECRET = process.env.JWT_SECRET;
+
+  if (!JWT_SECRET) {
+    console.error('JWT_SECRET is not set in environment variables.');
+    return null;
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    return decoded.user?.id;
+  } catch (error) {
+    return null;
+  }
+}
 
 export default async function handler(request, response) {
-  const cookies = parse(request.headers.cookie || '');
-  const sessionCookie = cookies.app_session;
+  const userId = getUserIdFromToken(request);
 
-  if (!sessionCookie) {
-    return response.status(401).json({ error: 'Not authenticated' });
-  }
-
-  let session;
-  try {
-    session = JSON.parse(sessionCookie);
-  } catch (error) {
-    return response.status(400).json({ error: 'Invalid session cookie' });
-  }
-  
-  if (!session?.user?.id) {
+  if (!userId) {
     return response.status(401).json({ error: 'Unauthorized' });
   }
-
-  const userId = session.user.id;
   const userTasksKey = `tasks:${userId}`;
   const { method } = request;
 

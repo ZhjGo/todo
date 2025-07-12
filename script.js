@@ -186,11 +186,22 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 从API获取任务
     const fetchTasks = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
         try {
-            const response = await fetch('/api/tasks');
-            tasks = await response.json();
-            renderTasks();
-            updateTaskStats();
+            const response = await fetch('/api/tasks', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                tasks = await response.json();
+                renderTasks();
+                updateTaskStats();
+            } else {
+                // Token 可能无效或过期
+                logout();
+            }
         } catch (error) {
             console.error('Failed to fetch tasks:', error);
         }
@@ -198,11 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 保存任务到API
     const saveTasks = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
         try {
             await fetch('/api/tasks', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(tasks),
             });
@@ -392,6 +406,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // 认证功能
+    const logout = () => {
+        localStorage.removeItem('authToken');
+        // 刷新页面以应用登出状态
+        window.location.href = '/';
+    };
+
     const updateAuthUI = (session) => {
         authContainer.innerHTML = '';
         if (session?.user) {
@@ -403,9 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button id="logout-btn" class="text-sm font-medium text-gray-600 hover:text-primary-500">登出</button>
                 </div>
             `;
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                window.location.href = '/api/auth/logout';
-            });
+            document.getElementById('logout-btn').addEventListener('click', logout);
             // 登录后获取任务
             fetchTasks();
         } else {
@@ -439,13 +457,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const checkSession = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            updateAuthUI(null);
+            return;
+        }
+
         try {
-            const response = await fetch('/api/auth/session');
+            const response = await fetch('/api/auth/session', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             if (response.ok) {
                 const session = await response.json();
                 updateAuthUI(session);
             } else {
-                updateAuthUI(null);
+                // Token 无效或过期，执行登出
+                logout();
             }
         } catch (error) {
             console.error('Failed to check session:', error);
@@ -454,6 +483,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 初始化
-    updateTimerDisplay();
-    checkSession();
+    const initialize = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        if (token) {
+            localStorage.setItem('authToken', token);
+            // 清理 URL
+            window.history.replaceState({}, document.title, "/");
+        }
+
+        updateTimerDisplay();
+        checkSession();
+    };
+
+    initialize();
 });

@@ -1,4 +1,4 @@
-import { serialize } from 'cookie';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
   const { code } = req.query;
@@ -48,26 +48,30 @@ export default async function handler(req, res) {
     });
     const userData = await userResponse.json();
 
-    // 创建 session 对象
-    const session = {
-      user: {
-        id: `google-${userData.id}`, // 添加前缀以区分不同提供商的用户
-        name: userData.name,
-        image: userData.picture,
-      },
-      accessToken: access_token,
+    // 创建用于 Token 的 user 对象
+    const user = {
+      id: `google:${userData.id}`, // 加上 provider 前缀确保唯一性
+      name: userData.name,
+      image: userData.picture,
     };
 
-    // 将 session 信息存储在 cookie 中
-    const cookie = serialize('app_session', JSON.stringify(session), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== 'development',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: '/',
+    // 从环境变量获取 JWT_SECRET
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET is not set in environment variables.');
+      return res.status(500).json({ error: 'Authentication configuration error.' });
+    }
+
+    // 创建 JWT
+    const token = jwt.sign({ user }, JWT_SECRET, {
+      expiresIn: '7d', // Token 有效期为 7 天
     });
 
-    res.setHeader('Set-Cookie', cookie);
-    res.redirect('/');
+    // 重定向回首页，并在 URL 中附带 token
+    const redirectUrl = new URL('/', `https://${req.headers.host}`);
+    redirectUrl.searchParams.set('token', token);
+
+    res.redirect(redirectUrl.toString());
 
   } catch (error) {
     console.error('Google OAuth Error:', error);
