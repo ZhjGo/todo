@@ -410,11 +410,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // 用户未登录
             authContainer.innerHTML = `
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <a href="/api/auth/[...auth]" class="bg-dark hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
+                <div class="flex flex-col sm:flex-row items-center gap-3">
+                    <a href="/api/auth/[...auth]" class="w-full sm:w-auto bg-dark hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
                         <i class="fab fa-github mr-2"></i> 使用 GitHub 登录
                     </a>
-                    <a href="/api/auth/google" class="bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors border border-gray-300">
+                    <a href="/api/auth/google" class="w-full sm:w-auto bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors border border-gray-300">
                         <i class="fab fa-google mr-2"></i> 使用 Google 登录
                     </a>
                 </div>

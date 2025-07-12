@@ -6,6 +6,7 @@ export default function handler(req, res) {
     secure: process.env.NODE_ENV !== 'development',
     maxAge: -1, // Expire the cookie immediately
     path: '/',
+    domain: req.headers.host.split(':')[0], // 确保在正确的域名上删除
   });
 
   res.setHeader('Set-Cookie', cookie);
