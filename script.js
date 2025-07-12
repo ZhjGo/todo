@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tomatoCount++;
                     tomatoCountElement.textContent = tomatoCount;
                     focusTime += parseInt(workTimeInput.value);
-                    focusTimeElement.textContent = Math.floor(focusTime / 60);
+                    focusTimeElement.textContent = focusTime;
                     
                     // 每4个番茄钟后休息更长时间
                     if (tomatoCount % 4 === 0) {
