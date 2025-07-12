@@ -1,6 +1,7 @@
 {
   "routes": [
     { "src": "/api/auth/callback", "dest": "/api/auth/[...auth].js" },
+    { "src": "/api/auth/google/callback", "dest": "/api/auth/google.js" },
     { "src": "/api/auth/logout", "dest": "/api/auth/logout.js" },
     { "src": "/api/auth/session", "dest": "/api/auth/session.js" },
     { "src": "/api/tasks", "dest": "/api/tasks.js" }
