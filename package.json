@@ -4,7 +4,7 @@
   "description": "A Pomodoro Timer app with a to-do list, built with Tailwind CSS and vanilla JavaScript.",
   "main": "script.js",
   "scripts": {
-    "build": "tailwindcss -i ./style.css -o ./public/style.css --minify && copy index.html public\\index.html && copy script.js public\\script.js",
+    "build": "tailwindcss -i ./style.css -o ./public/style.css --minify && copyfiles -u 1 index.html script.js public",
     "dev": "npx tailwindcss -i ./style.css -o ./public/style.css --watch",
     "start": "serve public"
   },
@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "copyfiles": "^2.4.1",
     "serve": "^14.2.4",
     "tailwindcss": "^3.4.1"
   },
