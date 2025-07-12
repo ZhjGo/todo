@@ -403,17 +403,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button id="logout-btn" class="text-sm font-medium text-gray-600 hover:text-primary-500">登出</button>
                 </div>
             `;
-            document.getElementById('logout-btn').addEventListener('click', async () => {
-                await fetch('/api/auth/logout');
-                window.location.reload();
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                window.location.href = '/api/auth/logout';
             });
             // 登录后获取任务
             fetchTasks();
         } else {
             // 用户未登录
             authContainer.innerHTML = `
-                <button id="login-btn" class="bg-primary-500 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors">
-                    登录 / 注册
+                <button id="login-btn" class="bg-white p-2 rounded-xl shadow flex items-center text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    登录
                 </button>
             `;
             document.getElementById('login-btn').addEventListener('click', () => {
