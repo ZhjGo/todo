@@ -1,4 +1,12 @@
 {
-  "installCommand": "npm install",
-  "devCommand": "npx tailwindcss -i ./style.css -o ./public/style.css --watch"
+  "routes": [
+    {
+      "src": "/api/auth/(.*)",
+      "dest": "/api/auth/[...auth].js"
+    },
+    {
+      "src": "/api/tasks",
+      "dest": "/api/tasks.js"
+    }
+  ]
 }
