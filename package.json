@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A Pomodoro Timer app with a to-do list, built with Tailwind CSS and vanilla JavaScript.",
   "main": "script.js",
+  "type": "module",
   "scripts": {
     "build": "tailwindcss -i ./style.css -o ./public/style.css --minify && copyfiles index.html script.js public",
     "dev": "npx tailwindcss -i ./style.css -o ./public/style.css --watch",
