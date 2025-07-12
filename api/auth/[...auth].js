@@ -1,7 +1,7 @@
 import { Auth } from "@auth/core";
 import GitHub from "@auth/core/providers/github";
 
-const handler = Auth({
+export default Auth({
   providers: [
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
@@ -17,17 +17,4 @@ const handler = Auth({
       return session;
     },
   },
-  logger: {
-    error(code, ...message) {
-      console.error(code, message);
-    },
-    warn(code, ...message) {
-      console.warn(code, message);
-    },
-    debug(code, ...message) {
-      console.debug(code, message);
-    },
-  },
 });
-
-export { handler as GET, handler as POST };
