@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const priorityTasksElement = document.getElementById('priority-tasks');
     const emptyStateElement = document.getElementById('empty-state');
     const filterButtons = document.querySelectorAll('.filter-btn');
+    const authContainer = document.getElementById('auth-container');
     
     // 初始化进度环
     const updateProgressRing = () => {
@@ -387,7 +388,53 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => filterTasks(btn.dataset.filter));
     });
     
+    // 认证功能
+    const updateAuthUI = (session) => {
+        authContainer.innerHTML = '';
+        if (session?.user) {
+            // 用户已登录
+            const user = session.user;
+            authContainer.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <img src="${user.image}" alt="${user.name}" class="w-8 h-8 rounded-full">
+                    <button id="logout-btn" class="text-sm font-medium text-gray-600 hover:text-primary-500">登出</button>
+                </div>
+            `;
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                window.location.href = '/api/auth/signout';
+            });
+            // 登录后获取任务
+            fetchTasks();
+        } else {
+            // 用户未登录
+            authContainer.innerHTML = `
+                <a href="/api/auth/signin/github" class="bg-dark hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors">
+                    <i class="fab fa-github mr-2"></i> 使用 GitHub 登录
+                </a>
+            `;
+            tasksContainer.innerHTML = `
+                <div class="text-center py-12 text-gray-400">
+                    <i class="fas fa-lock text-4xl mb-4"></i>
+                    <p>请先登录以查看您的待办事项</p>
+                </div>
+            `;
+            emptyStateElement.style.display = 'none';
+        }
+    };
+
+    const checkSession = async () => {
+        try {
+            const response = await fetch('/api/auth/session');
+            const session = await response.json();
+            // Object.keys(session).length > 0 检查返回的是否是一个有内容的session对象
+            updateAuthUI(Object.keys(session).length > 0 ? session : null);
+        } catch (error) {
+            console.error('Failed to check session:', error);
+            updateAuthUI(null);
+        }
+    };
+
     // 初始化
     updateTimerDisplay();
-    fetchTasks();
+    checkSession();
 });
