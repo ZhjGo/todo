@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const tomatoCountElement = document.getElementById('tomato-count');
     const focusTimeElement = document.getElementById('focus-time');
     const cyclesCountElement = document.getElementById('cycles-count');
+    const modeStatusDot = document.getElementById('mode-status-dot');
+    const modeStatusText = document.getElementById('mode-status-text');
     
     // 待办事项DOM元素
     const tasksContainer = document.getElementById('tasks-container');
@@ -62,6 +64,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateTimerDisplay = () => {
         timerElement.textContent = formatTime(timeLeft);
         updateProgressRing();
+    };
+
+    // 更新右上角模式状态
+    const updateModeStatus = (breakActive) => {
+        if (breakActive) {
+            modeStatusDot.classList.remove('bg-red-500');
+            modeStatusDot.classList.add('bg-green-500');
+            modeStatusText.textContent = '休息中';
+        } else {
+            modeStatusDot.classList.remove('bg-green-500');
+            modeStatusDot.classList.add('bg-red-500');
+            modeStatusText.textContent = '专注中';
+        }
     };
     
     // 开始计时
@@ -104,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     isBreak = true;
                     timeLeft = breakTime;
+                    updateModeStatus(true);
                 } else {
                     // 休息结束
                     cyclesCount++;
@@ -111,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     statusElement.textContent = '休息结束！开始新的专注';
                     isBreak = false;
                     timeLeft = workTime;
+                    updateModeStatus(false);
                 }
                 
                 updateTimerDisplay();
@@ -147,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         statusElement.textContent = '准备开始专注';
         updateTimerDisplay();
+        updateModeStatus(false);
     };
     
     // 更新时间设置
@@ -231,26 +249,28 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        filteredTasks.forEach((task, index) => {
+        filteredTasks.forEach((task) => {
             const taskElement = document.createElement('div');
             taskElement.className = `task-item p-4 flex items-center ${task.completed ? 'completed' : ''}`;
             taskElement.dataset.id = task.id;
             
             taskElement.innerHTML = `
                 <div class="w-10 flex justify-center">
-                    <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                    <input type="checkbox" ${task.completed ? 'checked' : ''}
                         class="complete-checkbox w-5 h-5 rounded-full border-2 border-primary-500 text-primary-500 focus:ring-0">
                 </div>
                 <div class="flex-1">
-                    <div class="task-text font-medium ${task.completed ? 'text-gray-400' : 'text-gray-800'}">${task.text}</div>
+                    <div class="task-text font-medium ${task.completed ? 'text-gray-400 line-through' : 'text-gray-800'}">${task.text}</div>
                     <div class="text-xs text-gray-500 mt-1 flex items-center">
                         <i class="fas fa-calendar mr-1"></i>
                         ${task.dateAdded}
-                        ${task.priority ? `<span class="ml-3 bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs">优先级</span>` : ''}
                     </div>
                 </div>
-                <div class="w-20 flex justify-center">
-                    <button class="delete-btn text-gray-400 hover:text-red-500 transition-colors">
+                <div class="w-20 flex justify-center items-center gap-3">
+                    <button class="priority-btn text-gray-400 hover:text-amber-500 transition-colors" title="设为优先级">
+                        <i class="${task.priority ? 'fas fa-star text-amber-500' : 'far fa-star'}"></i>
+                    </button>
+                    <button class="delete-btn text-gray-400 hover:text-red-500 transition-colors" title="删除任务">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -262,11 +282,9 @@ document.addEventListener('DOMContentLoaded', () => {
             tasksContainer.appendChild(taskElement);
             
             // 添加事件监听
-            const checkbox = taskElement.querySelector('.complete-checkbox');
-            checkbox.addEventListener('change', () => toggleTaskComplete(task.id));
-            
-            const deleteBtn = taskElement.querySelector('.delete-btn');
-            deleteBtn.addEventListener('click', () => deleteTask(task.id));
+            taskElement.querySelector('.complete-checkbox').addEventListener('change', () => toggleTaskComplete(task.id));
+            taskElement.querySelector('.priority-btn').addEventListener('click', () => toggleTaskPriority(task.id));
+            taskElement.querySelector('.delete-btn').addEventListener('click', () => deleteTask(task.id));
         });
     };
     
@@ -295,6 +313,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const task = tasks.find(t => t.id === id);
         if (task) {
             task.completed = !task.completed;
+            saveTasks();
+            renderTasks();
+        }
+    };
+
+    // 切换任务优先级
+    const toggleTaskPriority = (id) => {
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+            task.priority = !task.priority;
             saveTasks();
             renderTasks();
         }
