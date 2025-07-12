@@ -400,15 +400,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button id="logout-btn" class="text-sm font-medium text-gray-600 hover:text-primary-500">登出</button>
                 </div>
             `;
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                window.location.href = '/api/auth/signout';
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await fetch('/api/auth/logout');
+                window.location.reload();
             });
             // 登录后获取任务
             fetchTasks();
         } else {
             // 用户未登录
             authContainer.innerHTML = `
-                <a href="/api/auth/signin/github" class="bg-dark hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors">
+                <a href="/api/auth/[...auth]" class="bg-dark hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors">
                     <i class="fab fa-github mr-2"></i> 使用 GitHub 登录
                 </a>
             `;
@@ -425,9 +426,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkSession = async () => {
         try {
             const response = await fetch('/api/auth/session');
-            const session = await response.json();
-            // Object.keys(session).length > 0 检查返回的是否是一个有内容的session对象
-            updateAuthUI(Object.keys(session).length > 0 ? session : null);
+            if (response.ok) {
+                const session = await response.json();
+                updateAuthUI(session);
+            } else {
+                updateAuthUI(null);
+            }
         } catch (error) {
             console.error('Failed to check session:', error);
             updateAuthUI(null);

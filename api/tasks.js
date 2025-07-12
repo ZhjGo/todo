@@ -1,41 +1,21 @@
 import { kv } from '@vercel/kv';
-import { Auth } from '@auth/core';
-import GitHub from '@auth/core/providers/github';
-
-// 这是一个辅助函数，用于从请求中获取会话信息
-async function getSession(request) {
-  // Auth.js 在 Vercel Edge 环境中需要完整的 Request 对象
-  // 我们需要构造一个符合要求的对象
-  const url = new URL(request.url, `https://${request.headers.host}`);
-  const req = new Request(url, {
-    headers: request.headers,
-    method: request.method,
-    body: request.method === 'POST' ? JSON.stringify(request.body) : undefined,
-    credentials: 'omit',
-  });
-
-  return await Auth(req, {
-    providers: [
-      GitHub({
-        clientId: process.env.AUTH_GITHUB_ID,
-        clientSecret: process.env.AUTH_GITHUB_SECRET,
-      }),
-    ],
-    secret: process.env.AUTH_SECRET,
-    callbacks: {
-      async session({ session, token }) {
-        if (session?.user) {
-          session.user.id = token.sub;
-        }
-        return session;
-      },
-    },
-  });
-}
+import { parse } from 'cookie';
 
 export default async function handler(request, response) {
-  const session = await getSession(request);
+  const cookies = parse(request.headers.cookie || '');
+  const sessionCookie = cookies.app_session;
 
+  if (!sessionCookie) {
+    return response.status(401).json({ error: 'Not authenticated' });
+  }
+
+  let session;
+  try {
+    session = JSON.parse(sessionCookie);
+  } catch (error) {
+    return response.status(400).json({ error: 'Invalid session cookie' });
+  }
+  
   if (!session?.user?.id) {
     return response.status(401).json({ error: 'Unauthorized' });
   }
