@@ -410,15 +410,30 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // 用户未登录
             authContainer.innerHTML = `
-                <div class="flex flex-col sm:flex-row items-center gap-3">
-                    <a href="/api/auth/[...auth]" class="w-full sm:w-auto bg-dark hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
-                        <i class="fab fa-github mr-2"></i> 使用 GitHub 登录
-                    </a>
-                    <a href="/api/auth/google" class="w-full sm:w-auto bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors border border-gray-300">
-                        <i class="fab fa-google mr-2"></i> 使用 Google 登录
-                    </a>
+                <div class="relative inline-block text-left">
+                    <div>
+                        <button type="button" id="login-menu-btn" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500" aria-haspopup="true" aria-expanded="true">
+                            登录 / 注册
+                            <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="login-options" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden" role="menu" aria-orientation="vertical" aria-labelledby="login-menu-btn">
+                        <div class="py-1" role="none">
+                            <a href="/api/auth/[...auth]" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 flex items-center" role="menuitem">
+                                <i class="fab fa-github w-5 mr-2"></i> 使用 GitHub 登录
+                            </a>
+                            <a href="/api/auth/google" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 flex items-center" role="menuitem">
+                                <i class="fab fa-google w-5 mr-2"></i> 使用 Google 登录
+                            </a>
+                        </div>
+                    </div>
                 </div>
             `;
+            document.getElementById('login-menu-btn').addEventListener('click', () => {
+                document.getElementById('login-options').classList.toggle('hidden');
+            });
             tasksContainer.innerHTML = `
                 <div class="text-center py-12 text-gray-400">
                     <i class="fas fa-lock text-4xl mb-4"></i>
