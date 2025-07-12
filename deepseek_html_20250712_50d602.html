@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄时钟 | iOS 18风格</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+</head>
+<body>
+    <div class="max-w-6xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+        <!-- 左侧：待办事项 -->
+        <div class="w-full md:w-1/2 p-6 border-r border-gray-100">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-dark flex items-center">
+                    <i class="fas fa-list-check text-primary-500 mr-3"></i>
+                    待办事项
+                </h2>
+                <div class="text-sm bg-primary-50 text-primary-700 px-3 py-1 rounded-full font-medium">
+                    <span id="task-count">0</span> 个任务
+                </div>
+            </div>
+            
+            <!-- 添加任务表单 -->
+            <div class="flex mb-6 gap-2">
+                <input 
+                    type="text" 
+                    id="new-task" 
+                    placeholder="添加新任务..." 
+                    class="flex-1 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                <button 
+                    id="add-task-btn"
+                    class="bg-primary-500 hover:bg-primary-700 text-white font-medium px-5 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center"
+                >
+                    <i class="fas fa-plus mr-2"></i>添加
+                </button>
+            </div>
+            
+            <!-- 任务列表 -->
+            <div class="bg-surface rounded-xl shadow-inner overflow-hidden">
+                <div class="p-4 border-b border-gray-100">
+                    <div class="flex text-sm font-medium text-gray-500">
+                        <div class="w-10">状态</div>
+                        <div class="flex-1">任务内容</div>
+                        <div class="w-20">操作</div>
+                    </div>
+                </div>
+                
+                <div id="tasks-container" class="divide-y divide-gray-100 max-h-[350px] overflow-y-auto">
+                    <!-- 任务将通过JavaScript动态添加 -->
+                    <div class="text-center py-12 text-gray-400" id="empty-state">
+                        <i class="fas fa-clipboard-list text-4xl mb-4"></i>
+                        <p>暂无待办任务</p>
+                        <p class="text-sm mt-2">添加您的第一个任务开始吧</p>
+                    </div>
+                </div>
+                
+                <!-- 任务筛选 -->
+                <div class="p-3 bg-gray-50 flex justify-between">
+                    <div class="text-sm text-gray-500">
+                        完成: <span id="completed-count">0</span>/<span id="total-count">0</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="filter-btn active px-3 py-1 rounded-lg text-xs font-medium bg-primary-500 text-white" data-filter="all">全部</button>
+                        <button class="filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="active">进行中</button>
+                        <button class="filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="completed">已完成</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 任务统计 -->
+            <div class="mt-6 grid grid-cols-3 gap-4">
+                <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-100">
+                    <div class="text-2xl font-bold text-primary-700 text-center" id="today-tasks">0</div>
+                    <div class="text-gray-600 text-sm text-center mt-1">今日任务</div>
+                </div>
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
+                    <div class="text-2xl font-bold text-green-600 text-center" id="completed-tasks">0</div>
+                    <div class="text-gray-600 text-sm text-center mt-1">已完成</div>
+                </div>
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-100">
+                    <div class="text-2xl font-bold text-amber-600 text-center" id="priority-tasks">0</div>
+                    <div class="text-gray-600 text-sm text-center mt-1">优先级</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧：番茄时钟 -->
+        <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-primary-50 to-indigo-50">
+            <div class="flex justify-between items-center mb-2">
+                <div>
+                    <h1 class="text-2xl font-bold text-dark">番茄时钟</h1>
+                    <p class="text-primary-700">专注工作 · 高效休息</p>
+                </div>
+                <div class="flex">
+                    <div class="bg-white p-2 rounded-xl shadow flex items-center">
+                        <div class="h-3 w-3 bg-red-500 rounded-full mr-2"></div>
+                        <span class="text-sm font-medium">专注中</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 计时器 -->
+            <div class="relative flex justify-center my-6">
+                <div class="relative">
+                    <svg class="progress-ring w-64 h-64" viewBox="0 0 100 100">
+                        <circle class="progress-ring__circle stroke-blue-100" stroke-width="8" fill="transparent" r="42" cx="50" cy="50"/>
+                        <circle class="progress-ring__circle stroke-primary-500" stroke-width="8" stroke-linecap="round" fill="transparent" r="42" cx="50" cy="50" 
+                                stroke-dasharray="264" stroke-dashoffset="0" id="progress-circle"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <div class="text-5xl font-bold text-dark mb-1" id="timer">25:00</div>
+                        <div class="text-primary-700 font-medium" id="status">准备开始专注</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 控制按钮 -->
+            <div class="flex justify-center gap-4 my-6">
+                <button id="start-btn" class="bg-primary-500 hover:bg-primary-700 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-opacity-50">
+                    <i class="fas fa-play mr-2"></i>开始
+                </button>
+                <button id="pause-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 opacity-70" disabled>
+                    <i class="fas fa-pause mr-2"></i>暂停
+                </button>
+                <button id="reset-btn" class="bg-tomato-500 hover:bg-tomato-600 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-tomato-400 focus:ring-opacity-50">
+                    <i class="fas fa-redo mr-2"></i>重置
+                </button>
+            </div>
+            
+            <!-- 设置区域 -->
+            <div class="bg-white rounded-xl p-5 mt-6 shadow-inner">
+                <h3 class="font-bold text-lg text-dark mb-4 flex items-center">
+                    <i class="fas fa-cog mr-2 text-primary-500"></i>设置
+                </h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">专注时间 (分钟)</label>
+                        <div class="flex rounded-lg border border-gray-300 overflow-hidden">
+                            <button id="work-minus" class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" id="work-time" min="1" max="60" value="25" class="w-full text-center border-none focus:ring-0">
+                            <button id="work-plus" class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">休息时间 (分钟)</label>
+                        <div class="flex rounded-lg border border-gray-300 overflow-hidden">
+                            <button id="break-minus" class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" id="break-time" min="1" max="30" value="5" class="w-full text-center border-none focus:ring-0">
+                            <button id="break-plus" class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 统计信息 -->
+            <div class="grid grid-cols-3 gap-4 mt-6 text-center">
+                <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-100">
+                    <div class="text-2xl font-bold text-primary-700" id="tomato-count">0</div>
+                    <div class="text-gray-600 text-sm mt-1">完成番茄</div>
+                </div>
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
+                    <div class="text-2xl font-bold text-green-600" id="focus-time">0</div>
+                    <div class="text-gray-600 text-sm mt-1">专注时间</div>
+                </div>
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-100">
+                    <div class="text-2xl font-bold text-amber-600" id="cycles-count">0</div>
+                    <div class="text-gray-600 text-sm mt-1">完成周期</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 状态变量
+            let isRunning = false;
+            let isBreak = false;
+            let workTime = 25 * 60; // 25分钟（秒）
+            let breakTime = 5 * 60;  // 5分钟（秒）
+            let timeLeft = workTime;
+            let timerId = null;
+            let tomatoCount = 0;
+            let focusTime = 0;
+            let cyclesCount = 0;
+            
+            // 待办事项数据
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            let currentFilter = 'all';
+            
+            // DOM元素
+            const timerElement = document.getElementById('timer');
+            const statusElement = document.getElementById('status');
+            const startButton = document.getElementById('start-btn');
+            const pauseButton = document.getElementById('pause-btn');
+            const resetButton = document.getElementById('reset-btn');
+            const workTimeInput = document.getElementById('work-time');
+            const breakTimeInput = document.getElementById('break-time');
+            const progressCircle = document.getElementById('progress-circle');
+            const tomatoCountElement = document.getElementById('tomato-count');
+            const focusTimeElement = document.getElementById('focus-time');
+            const cyclesCountElement = document.getElementById('cycles-count');
+            
+            // 待办事项DOM元素
+            const tasksContainer = document.getElementById('tasks-container');
+            const newTaskInput = document.getElementById('new-task');
+            const addTaskBtn = document.getElementById('add-task-btn');
+            const taskCountElement = document.getElementById('task-count');
+            const completedCountElement = document.getElementById('completed-count');
+            const totalCountElement = document.getElementById('total-count');
+            const todayTasksElement = document.getElementById('today-tasks');
+            const completedTasksElement = document.getElementById('completed-tasks');
+            const priorityTasksElement = document.getElementById('priority-tasks');
+            const emptyStateElement = document.getElementById('empty-state');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            // 初始化进度环
+            const updateProgressRing = () => {
+                const totalTime = isBreak ? breakTime : workTime;
+                const progress = ((totalTime - timeLeft) / totalTime) * 264;
+                progressCircle.style.strokeDashoffset = 264 - progress;
+                
+                // 根据状态改变颜色
+                progressCircle.classList.remove('stroke-primary-500', 'stroke-green-500');
+                progressCircle.classList.add(isBreak ? 'stroke-green-500' : 'stroke-primary-500');
+            };
+            
+            // 格式化时间
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                return `${mins}:${secs}`;
+            };
+            
+            // 更新计时器显示
+            const updateTimerDisplay = () => {
+                timerElement.textContent = formatTime(timeLeft);
+                updateProgressRing();
+            };
+            
+            // 开始计时
+            const startTimer = () => {
+                if (isRunning) return;
+                
+                isRunning = true;
+                startButton.disabled = true;
+                pauseButton.disabled = false;
+                startButton.classList.add('opacity-70');
+                pauseButton.classList.remove('opacity-70');
+                
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerId);
+                        isRunning = false;
+                        
+                        // 播放提示音
+                        const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+                        audio.play();
+                        
+                        if (!isBreak) {
+                            // 完成一个番茄钟
+                            tomatoCount++;
+                            tomatoCountElement.textContent = tomatoCount;
+                            focusTime += parseInt(workTimeInput.value);
+                            focusTimeElement.textContent = Math.floor(focusTime / 60);
+                            
+                            // 每4个番茄钟后休息更长时间
+                            if (tomatoCount % 4 === 0) {
+                                breakTime = 15 * 60;
+                                breakTimeInput.value = 15;
+                                statusElement.textContent = '完成4个番茄钟！休息15分钟';
+                            } else {
+                                statusElement.textContent = '专注完成！开始休息';
+                            }
+                            
+                            isBreak = true;
+                            timeLeft = breakTime;
+                        } else {
+                            // 休息结束
+                            cyclesCount++;
+                            cyclesCountElement.textContent = cyclesCount;
+                            statusElement.textContent = '休息结束！开始新的专注';
+                            isBreak = false;
+                            timeLeft = workTime;
+                        }
+                        
+                        updateTimerDisplay();
+                        startButton.disabled = false;
+                        startButton.classList.remove('opacity-70');
+                    }
+                }, 1000);
+            };
+            
+            // 暂停计时
+            const pauseTimer = () => {
+                if (!isRunning) return;
+                
+                clearInterval(timerId);
+                isRunning = false;
+                startButton.disabled = false;
+                pauseButton.disabled = true;
+                startButton.classList.remove('opacity-70');
+                pauseButton.classList.add('opacity-70');
+                statusElement.textContent = isBreak ? '休息已暂停' : '专注已暂停';
+            };
+            
+            // 重置计时器
+            const resetTimer = () => {
+                clearInterval(timerId);
+                isRunning = false;
+                isBreak = false;
+                timeLeft = workTime;
+                
+                startButton.disabled = false;
+                pauseButton.disabled = true;
+                startButton.classList.remove('opacity-70');
+                pauseButton.classList.add('opacity-70');
+                
+                statusElement.textContent = '准备开始专注';
+                updateTimerDisplay();
+            };
+            
+            // 更新时间设置
+            const updateTimeSettings = () => {
+                workTime = parseInt(workTimeInput.value) * 60;
+                breakTime = parseInt(breakTimeInput.value) * 60;
+                
+                if (!isRunning && !isBreak) {
+                    timeLeft = workTime;
+                    updateTimerDisplay();
+                }
+            };
+            
+            // 待办事项功能
+            
+            // 保存任务到本地存储
+            const saveTasks = () => {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                updateTaskStats();
+            };
+            
+            // 更新任务统计信息
+            const updateTaskStats = () => {
+                const today = new Date().toISOString().split('T')[0];
+                
+                const totalTasks = tasks.length;
+                const completedTasks = tasks.filter(task => task.completed).length;
+                const todayTasks = tasks.filter(task => task.dateAdded === today).length;
+                const priorityTasks = tasks.filter(task => task.priority).length;
+                
+                taskCountElement.textContent = totalTasks;
+                completedCountElement.textContent = completedTasks;
+                totalCountElement.textContent = totalTasks;
+                todayTasksElement.textContent = todayTasks;
+                completedTasksElement.textContent = completedTasks;
+                priorityTasksElement.textContent = priorityTasks;
+                
+                // 显示/隐藏空状态
+                emptyStateElement.style.display = totalTasks ? 'none' : 'block';
+            };
+            
+            // 渲染任务列表
+            const renderTasks = () => {
+                tasksContainer.innerHTML = '';
+                
+                const filteredTasks = tasks.filter(task => {
+                    if (currentFilter === 'active') return !task.completed;
+                    if (currentFilter === 'completed') return task.completed;
+                    return true;
+                });
+                
+                if (filteredTasks.length === 0) {
+                    const emptyMessage = document.createElement('div');
+                    emptyMessage.className = 'text-center py-12 text-gray-400';
+                    emptyMessage.innerHTML = `
+                        <i class="fas fa-inbox text-4xl mb-4"></i>
+                        <p>没有找到任务</p>
+                    `;
+                    tasksContainer.appendChild(emptyMessage);
+                    return;
+                }
+                
+                filteredTasks.forEach((task, index) => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = `task-item p-4 flex items-center ${task.completed ? 'completed' : ''}`;
+                    taskElement.dataset.id = task.id;
+                    
+                    taskElement.innerHTML = `
+                        <div class="w-10 flex justify-center">
+                            <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                                class="complete-checkbox w-5 h-5 rounded-full border-2 border-primary-500 text-primary-500 focus:ring-0">
+                        </div>
+                        <div class="flex-1">
+                            <div class="task-text font-medium ${task.completed ? 'text-gray-400' : 'text-gray-800'}">${task.text}</div>
+                            <div class="text-xs text-gray-500 mt-1 flex items-center">
+                                <i class="fas fa-calendar mr-1"></i>
+                                ${task.dateAdded}
+                                ${task.priority ? `<span class="ml-3 bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs">优先级</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="w-20 flex justify-center">
+                            <button class="delete-btn text-gray-400 hover:text-red-500 transition-colors">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // 添加动画效果
+                    taskElement.classList.add('fade-in');
+                    
+                    tasksContainer.appendChild(taskElement);
+                    
+                    // 添加事件监听
+                    const checkbox = taskElement.querySelector('.complete-checkbox');
+                    checkbox.addEventListener('change', () => toggleTaskComplete(task.id));
+                    
+                    const deleteBtn = taskElement.querySelector('.delete-btn');
+                    deleteBtn.addEventListener('click', () => deleteTask(task.id));
+                });
+            };
+            
+            // 添加新任务
+            const addNewTask = () => {
+                const text = newTaskInput.value.trim();
+                if (!text) return;
+                
+                const today = new Date().toISOString().split('T')[0];
+                
+                const newTask = {
+                    id: Date.now(),
+                    text,
+                    completed: false,
+                    priority: false,
+                    dateAdded: today
+                };
+                
+                tasks.unshift(newTask);
+                saveTasks();
+                renderTasks();
+                
+                newTaskInput.value = '';
+                
+                // 添加动画效果
+                tasksContainer.firstChild.classList.add('glow');
+                setTimeout(() => tasksContainer.firstChild.classList.remove('glow'), 1000);
+            };
+            
+            // 切换任务完成状态
+            const toggleTaskComplete = (taskId) => {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.completed = !task.completed;
+                    saveTasks();
+                    renderTasks();
+                }
+            };
+            
+            // 删除任务
+            const deleteTask = (taskId) => {
+                tasks = tasks.filter(t => t.id !== taskId);
+                saveTasks();
+                renderTasks();
+            };
+            
+            // 筛选任务
+            const filterTasks = (filter) => {
+                currentFilter = filter;
+                filterButtons.forEach(btn => {
+                    if (btn.dataset.filter === filter) {
+                        btn.classList.add('active', 'bg-primary-500', 'text-white');
+                        btn.classList.remove('bg-gray-200', 'text-gray-700');
+                    } else {
+                        btn.classList.remove('active', 'bg-primary-500', 'text-white');
+                        btn.classList.add('bg-gray-200', 'text-gray-700');
+                    }
+                });
+                renderTasks();
+            };
+            
+            // 初始化
+            const init = () => {
+                updateTimerDisplay();
+                updateTimeSettings();
+                updateTaskStats();
+                renderTasks();
+                
+                // 添加示例任务
+                if (tasks.length === 0) {
+                    const today = new Date().toISOString().split('T')[0];
+                    tasks = [
+                        { id: 1, text: '完成番茄时钟网站设计', completed: false, priority: true, dateAdded: today },
+                        { id: 2, text: '编写项目文档', completed: false, priority: false, dateAdded: today },
+                        { id: 3, text: '团队会议讨论', completed: true, priority: false, dateAdded: '2023-11-10' }
+                    ];
+                    saveTasks();
+                    renderTasks();
+                }
+            };
+            
+            // 事件监听
+            startButton.addEventListener('click', startTimer);
+            pauseButton.addEventListener('click', pauseTimer);
+            resetButton.addEventListener('click', resetTimer);
+            
+            // 工作时间设置
+            document.getElementById('work-plus').addEventListener('click', () => {
+                if (workTimeInput.value < 60) {
+                    workTimeInput.value = parseInt(workTimeInput.value) + 1;
+                    updateTimeSettings();
+                }
+            });
+            
+            document.getElementById('work-minus').addEventListener('click', () => {
+                if (workTimeInput.value > 1) {
+                    workTimeInput.value = parseInt(workTimeInput.value) - 1;
+                    updateTimeSettings();
+                }
+            });
+            
+            // 休息时间设置
+            document.getElementById('break-plus').addEventListener('click', () => {
+                if (breakTimeInput.value < 30) {
+                    breakTimeInput.value = parseInt(breakTimeInput.value) + 1;
+                    updateTimeSettings();
+                }
+            });
+            
+            document.getElementById('break-minus').addEventListener('click', () => {
+                if (breakTimeInput.value > 1) {
+                    breakTimeInput.value = parseInt(breakTimeInput.value) - 1;
+                    updateTimeSettings();
+                }
+            });
+            
+            // 输入框变化监听
+            workTimeInput.addEventListener('change', updateTimeSettings);
+            breakTimeInput.addEventListener('change', updateTimeSettings);
+            
+            // 待办事项事件
+            addTaskBtn.addEventListener('click', addNewTask);
+            newTaskInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addNewTask();
+            });
+            
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => filterTasks(btn.dataset.filter));
+            });
+            
+            // 初始化应用
+            init();
+        });
+    </script>
+</body>
+</html>

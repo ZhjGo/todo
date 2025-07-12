@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄时钟 | iOS 18风格</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+</head>
+<body>
+    <div class="max-w-6xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+        <!-- 左侧：待办事项 -->
+        <div class="w-full md:w-1/2 p-6 border-r border-gray-100">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-dark flex items-center">
+                    <i class="fas fa-list-check text-primary-500 mr-3"></i>
+                    待办事项
+                </h2>
+                <div class="text-sm bg-primary-50 text-primary-700 px-3 py-1 rounded-full font-medium">
+                    <span id="task-count">0</span> 个任务
+                </div>
+            </div>
+            
+            <!-- 添加任务表单 -->
+            <div class="flex mb-6 gap-2">
+                <input 
+                    type="text" 
+                    id="new-task" 
+                    placeholder="添加新任务..." 
+                    class="flex-1 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                <button 
+                    id="add-task-btn"
+                    class="bg-primary-500 hover:bg-primary-700 text-white font-medium px-5 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center"
+                >
+                    <i class="fas fa-plus mr-2"></i>添加
+                </button>
+            </div>
+            
+            <!-- 任务列表 -->
+            <div class="bg-surface rounded-xl shadow-inner overflow-hidden">
+                <div class="p-4 border-b border-gray-100">
+                    <div class="flex text-sm font-medium text-gray-500">
+                        <div class="w-10">状态</div>
+                        <div class="flex-1">任务内容</div>
+                        <div class="w-20">操作</div>
+                    </div>
+                </div>
+                
+                <div id="tasks-container" class="divide-y divide-gray-100 max-h-[350px] overflow-y-auto">
+                    <!-- 任务将通过JavaScript动态添加 -->
+                    <div class="text-center py-12 text-gray-400" id="empty-state">
+                        <i class="fas fa-clipboard-list text-4xl mb-4"></i>
+                        <p>暂无待办任务</p>
+                        <p class="text-sm mt-2">添加您的第一个任务开始吧</p>
+                    </div>
+                </div>
+                
+                <!-- 任务筛选 -->
+                <div class="p-3 bg-gray-50 flex justify-between">
+                    <div class="text-sm text-gray-500">
+                        完成: <span id="completed-count">0</span>/<span id="total-count">0</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="filter-btn active px-3 py-1 rounded-lg text-xs font-medium bg-primary-500 text-white" data-filter="all">全部</button>
+                        <button class="filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="active">进行中</button>
+                        <button class="filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="completed">已完成</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 任务统计 -->
+            <div class="mt-6 grid grid-cols-3 gap-4">
+                <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-100">
+                    <div class="text-2xl font-bold text-primary-700 text-center" id="today-tasks">0</div>
+                    <div class="text-gray-600 text-sm text-center mt-1">今日任务</div>
+                </div>
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
+                    <div class="text-2xl font-bold text-green-600 text-center" id="completed-tasks">0</div>
+                    <div class="text-gray-600 text-sm text-center mt-1">已完成</div>
+                </div>
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-100">
+                    <div class="text-2xl font-bold text-amber-600 text-center" id="priority-tasks">0</div>
+                    <div class="text-gray-600 text-sm text-center mt-1">优先级</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧：番茄时钟 -->
+        <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-primary-50 to-indigo-50">
+            <div class="flex justify-between items-center mb-2">
+                <div>
+                    <h1 class="text-2xl font-bold text-dark">番茄时钟</h1>
+                    <p class="text-primary-700">专注工作 · 高效休息</p>
+                </div>
+                <div class="flex">
+                    <div class="bg-white p-2 rounded-xl shadow flex items-center">
+                        <div class="h-3 w-3 bg-red-500 rounded-full mr-2"></div>
+                        <span class="text-sm font-medium">专注中</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 计时器 -->
+            <div class="relative flex justify-center my-6">
+                <div class="relative">
+                    <svg class="progress-ring w-64 h-64" viewBox="0 0 100 100">
+                        <circle class="progress-ring__circle stroke-blue-100" stroke-width="8" fill="transparent" r="42" cx="50" cy="50"/>
+                        <circle class="progress-ring__circle stroke-primary-500" stroke-width="8" stroke-linecap="round" fill="transparent" r="42" cx="50" cy="50" 
+                                stroke-dasharray="264" stroke-dashoffset="0" id="progress-circle"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <div class="text-5xl font-bold text-dark mb-1" id="timer">25:00</div>
+                        <div class="text-primary-700 font-medium" id="status">准备开始专注</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 控制按钮 -->
+            <div class="flex justify-center gap-4 my-6">
+                <button id="start-btn" class="bg-primary-500 hover:bg-primary-700 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-opacity-50">
+                    <i class="fas fa-play mr-2"></i>开始
+                </button>
+                <button id="pause-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 opacity-70" disabled>
+                    <i class="fas fa-pause mr-2"></i>暂停
+                </button>
+                <button id="reset-btn" class="bg-tomato-500 hover:bg-tomato-600 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-tomato-400 focus:ring-opacity-50">
+                    <i class="fas fa-redo mr-2"></i>重置
+                </button>
+            </div>
+            
+            <!-- 设置区域 -->
+            <div class="bg-white rounded-xl p-5 mt-6 shadow-inner">
+                <h3 class="font-bold text-lg text-dark mb-4 flex items-center">
+                    <i class="fas fa-cog mr-2 text-primary-500"></i>设置
+                </h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">专注时间 (分钟)</label>
+                        <div class="flex rounded-lg border border-gray-300 overflow-hidden">
+                            <button id="work-minus" class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" id="work-time" min="1" max="60" value="25" class="w-full text-center border-none focus:ring-0">
+                            <button id="work-plus" class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">休息时间 (分钟)</label>
+                        <div class="flex rounded-lg border border-gray-300 overflow-hidden">
+                            <button id="break-minus" class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" id="break-time" min="1" max="30" value="5" class="w-full text-center border-none focus:ring-0">
+                            <button id="break-plus" class="bg-gray-100 px-3 py-2 text-gray-600 hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 统计信息 -->
+            <div class="grid grid-cols-3 gap-4 mt-6 text-center">
+                <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-100">
+                    <div class="text-2xl font-bold text-primary-700" id="tomato-count">0</div>
+                    <div class="text-gray-600 text-sm mt-1">完成番茄</div>
+                </div>
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
+                    <div class="text-2xl font-bold text-green-600" id="focus-time">0</div>
+                    <div class="text-gray-600 text-sm mt-1">专注时间</div>
+                </div>
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-100">
+                    <div class="text-2xl font-bold text-amber-600" id="cycles-count">0</div>
+                    <div class="text-gray-600 text-sm mt-1">完成周期</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
