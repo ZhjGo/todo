@@ -1,7 +1,7 @@
 import { Auth } from "@auth/core";
 import GitHub from "@auth/core/providers/github";
 
-export default Auth({
+const handler = Auth({
   providers: [
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
@@ -18,3 +18,5 @@ export default Auth({
     },
   },
 });
+
+export { handler as GET, handler as POST };
