@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyStateElement = document.getElementById('empty-state');
     const filterButtons = document.querySelectorAll('.filter-btn');
     const authContainer = document.getElementById('auth-container');
+    const loginModal = document.getElementById('login-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
     
     // 初始化进度环
     const updateProgressRing = () => {
@@ -410,29 +412,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // 用户未登录
             authContainer.innerHTML = `
-                <div class="relative inline-block text-left">
-                    <div>
-                        <button type="button" id="login-menu-btn" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500" aria-haspopup="true" aria-expanded="true">
-                            登录 / 注册
-                            <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div id="login-options" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden" role="menu" aria-orientation="vertical" aria-labelledby="login-menu-btn">
-                        <div class="py-1" role="none">
-                            <a href="/api/auth/[...auth]" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 flex items-center" role="menuitem">
-                                <i class="fab fa-github w-5 mr-2"></i> 使用 GitHub 登录
-                            </a>
-                            <a href="/api/auth/google" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 flex items-center" role="menuitem">
-                                <i class="fab fa-google w-5 mr-2"></i> 使用 Google 登录
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                <button id="login-btn" class="bg-primary-500 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors">
+                    登录 / 注册
+                </button>
             `;
-            document.getElementById('login-menu-btn').addEventListener('click', () => {
-                document.getElementById('login-options').classList.toggle('hidden');
+            document.getElementById('login-btn').addEventListener('click', () => {
+                loginModal.classList.remove('hidden');
             });
             tasksContainer.innerHTML = `
                 <div class="text-center py-12 text-gray-400">
@@ -443,6 +428,16 @@ document.addEventListener('DOMContentLoaded', () => {
             emptyStateElement.style.display = 'none';
         }
     };
+
+    closeModalBtn.addEventListener('click', () => {
+        loginModal.classList.add('hidden');
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target == loginModal) {
+            loginModal.classList.add('hidden');
+        }
+    });
 
     const checkSession = async () => {
         try {

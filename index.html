@@ -197,5 +197,27 @@
     </div>
 
     <script src="script.js" defer></script>
+
+    <!-- 登录模态弹窗 -->
+    <div id="login-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 transition-opacity duration-300">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-2xl bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">登录 / 注册</h3>
+                <div class="mt-2 px-7 py-3 space-y-4">
+                    <a href="/api/auth/[...auth]" class="w-full bg-dark hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fab fa-github mr-3"></i> 使用 GitHub 登录
+                    </a>
+                    <a href="/api/auth/google" class="w-full bg-white hover:bg-gray-100 text-gray-800 font-medium py-3 px-4 rounded-lg flex items-center justify-center transition-colors border border-gray-300">
+                        <i class="fab fa-google mr-3"></i> 使用 Google 登录
+                    </a>
+                </div>
+                <div class="items-center px-4 py-3 mt-2">
+                    <button id="close-modal-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

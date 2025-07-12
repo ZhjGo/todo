@@ -1,14 +1,26 @@
 import { serialize } from 'cookie';
 
 export default function handler(req, res) {
-  const cookie = serialize('app_session', '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
-    maxAge: -1, // Expire the cookie immediately
-    path: '/',
-    domain: req.headers.host.split(':')[0], // 确保在正确的域名上删除
-  });
+  const host = req.headers.host;
+  const domain = host.startsWith('localhost') ? 'localhost' : '.' + host.split('.').slice(-2).join('.');
 
-  res.setHeader('Set-Cookie', cookie);
+  const cookies = [
+    serialize('app_session', '', {
+      maxAge: -1,
+      path: '/',
+    }),
+    serialize('app_session', '', {
+      maxAge: -1,
+      path: '/',
+      domain: domain,
+    }),
+    serialize('app_session', '', {
+      maxAge: -1,
+      path: '/',
+      domain: host,
+    }),
+  ];
+
+  res.setHeader('Set-Cookie', cookies);
   res.status(200).json({ message: 'Logged out' });
 }
