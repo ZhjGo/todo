@@ -85,23 +85,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // 通知功能
     const requestNotificationPermission = async () => {
         if (!('Notification' in window)) {
-            console.log("This browser does not support desktop notification");
+            console.log("通知功能：浏览器不支持。");
             return;
         }
-        if (Notification.permission !== 'granted') {
-            await Notification.requestPermission();
+        // 'default' 意味着用户还未选择，'denied' 意味着用户已拒绝
+        if (Notification.permission === 'default') {
+            console.log("通知功能：请求用户授权。");
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                console.log("通知功能：用户已授权。");
+            } else {
+                console.log("通知功能：用户已拒绝。");
+            }
+        } else {
+            console.log(`通知功能：当前权限状态为 '${Notification.permission}'。`);
         }
     };
 
     const showNotification = (title, body) => {
+        console.log(`通知功能：尝试发送通知。标题: "${title}", 内容: "${body}"`);
         if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(title, { body });
+            console.log("通知功能：权限已授予，正在创建通知。");
+            new Notification(title, {
+                body,
+                // 添加一个图标以提高可见性
+                icon: '/favicon.ico'
+            });
+        } else {
+            console.log(`通知功能：无法发送通知，因为权限状态为 '${Notification.permission}'。`);
         }
     };
     
     // 开始计时
-    const startTimer = () => {
+    const startTimer = async () => {
         if (isRunning) return;
+
+        // 在开始前再次检查并请求权限
+        await requestNotificationPermission();
         
         isRunning = true;
         startButton.disabled = true;
@@ -511,9 +531,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初始化
     const initialize = () => {
-        // 请求通知权限
-        requestNotificationPermission();
-
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
 
@@ -525,6 +542,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateTimerDisplay();
         checkSession();
+
+        // 在页面加载后延迟一点时间请求权限，避免过于突兀
+        setTimeout(requestNotificationPermission, 2000);
     };
 
     initialize();
