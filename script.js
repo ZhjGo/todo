@@ -81,6 +81,23 @@ document.addEventListener('DOMContentLoaded', () => {
             modeStatusText.textContent = '专注中';
         }
     };
+
+    // 通知功能
+    const requestNotificationPermission = async () => {
+        if (!('Notification' in window)) {
+            console.log("This browser does not support desktop notification");
+            return;
+        }
+        if (Notification.permission !== 'granted') {
+            await Notification.requestPermission();
+        }
+    };
+
+    const showNotification = (title, body) => {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { body });
+        }
+    };
     
     // 开始计时
     const startTimer = () => {
@@ -105,6 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
                 audio.play();
                 
+                let notificationTitle = '';
+                let notificationBody = '';
+
                 if (!isBreak) {
                     // 完成一个番茄钟
                     tomatoCount++;
@@ -117,8 +137,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         breakTime = 15 * 60;
                         breakTimeInput.value = 15;
                         statusElement.textContent = '完成4个番茄钟！休息15分钟';
+                        notificationTitle = '太棒了！';
+                        notificationBody = '您已完成4个专注循环，现在可以享受一个15分钟的长休息。';
                     } else {
                         statusElement.textContent = '专注完成！开始休息';
+                        notificationTitle = '专注完成！';
+                        notificationBody = `现在开始一个${breakTimeInput.value}分钟的短休息。`;
                     }
                     
                     isBreak = true;
@@ -129,11 +153,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     cyclesCount++;
                     cyclesCountElement.textContent = cyclesCount;
                     statusElement.textContent = '休息结束！开始新的专注';
+                    notificationTitle = '休息结束！';
+                    notificationBody = `准备好开始下一个${workTimeInput.value}分钟的专注了吗？`;
                     isBreak = false;
                     timeLeft = workTime;
                     updateModeStatus(false);
                 }
                 
+                showNotification(notificationTitle, notificationBody);
                 updateTimerDisplay();
                 startButton.disabled = false;
                 startButton.classList.remove('opacity-70');
@@ -484,6 +511,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初始化
     const initialize = () => {
+        // 请求通知权限
+        requestNotificationPermission();
+
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
 
